@@ -1,0 +1,190 @@
+[project]
+name = "phfe"
+version = "0.1.0"
+description = "Posthumanity's First Exam - Benchmark suite measuring in-context learning vs memorization"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "SQCU" }
+]
+keywords = ["llm", "benchmark", "distillation", "in-context-learning", "evaluation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    # Core data handling
+    "pyarrow>=15.0.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "datasets>=2.16.0",
+    "orjson>=3.9.0",
+    # Embeddings & similarity
+    "sentence-transformers>=2.3.0",
+    # API clients for tutor models
+    "openai>=1.12.0",
+    "anthropic>=0.18.0",
+    "httpx>=0.27.0",
+    # Async & concurrency
+    "anyio>=4.2.0",
+    "aiofiles>=23.2.0",
+    # CLI & config
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    # Observability & instrumentation
+    "structlog>=24.1.0",
+    "opentelemetry-api>=1.22.0",
+    "opentelemetry-sdk>=1.22.0",
+    "opentelemetry-exporter-otlp>=1.22.0",
+    # Verification (math/logic)
+    "sympy>=1.12",
+    "accelerate>=1.12.0",
+]
+
+[project.optional-dependencies]
+inference = [
+    "vllm>=0.3.0",
+    "transformers>=4.37.0",
+    "torch>=2.2.0",
+    "accelerate>=0.27.0",
+]
+
+latex = [
+    "pylatexenc>=2.10",
+    "pdf2image>=1.17.0",
+    "Pillow>=10.2.0",
+]
+
+eval = [
+    "lm-eval>=0.4.0",
+    "benepar>=0.2.0",
+    "spacy>=3.7.0",
+]
+
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+    "ipython>=8.21.0",
+]
+
+all = [
+    "phfe[inference,latex,eval,dev]",
+]
+
+[project.scripts]
+phfe = "phfe.cli:app"
+
+[project.urls]
+Documentation = "https://github.com/sqcu/phfe#readme"
+Repository = "https://github.com/sqcu/phfe"
+
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/phfe"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+]
+
+# Ruff configuration (linting + formatting)
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "PTH",    # flake8-use-pathlib
+    "RUF",    # ruff-specific rules
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # function call in default argument (common for Depends)
+    "B905",   # zip strict (py3.10+)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["phfe"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+# Mypy configuration
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "vllm.*",
+    "transformers.*",
+    "datasets.*",
+    "sentence_transformers.*",
+    "benepar.*",
+    "spacy.*",
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "-ra",
+    "-q",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests that require external services",
+    "network: marks tests requiring network access (HuggingFace, APIs)",
+    "gpu: marks tests requiring GPU",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src/phfe"]
+branch = true
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
