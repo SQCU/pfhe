@@ -47,6 +47,7 @@ dependencies = [
     # Verification (math/logic)
     "sympy>=1.12",
     "accelerate>=1.12.0",
+    "llama-cpp-python>=0.3.16",
 ]
 
 [project.optional-dependencies]

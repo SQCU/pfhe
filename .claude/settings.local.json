@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv:*)",
+      "Bash(git clone:*)",
+      "Bash(tree:*)",
+      "Bash(python3:*)",
+      "WebSearch"
+    ]
+  }
+}
