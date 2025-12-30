@@ -128,6 +128,79 @@ The v elimination is the breakthrough. v has 70+ orders of magnitude
 dynamic range (1e-30 to 1e+2), making it impossible to quantize below 8 bits.
 Muon sidesteps this entirely.
 
+## Muon's Tuned Newton-Schulz Coefficients (6x Better!)
+
+Standard N-S uses fixed coefficients: `X' = 1.5*X - 0.5*(X@X.T)@X`
+
+Muon uses **adaptive 5th-order coefficients**: `X' = a*X + (b*A + c*A²)@X`
+
+### Coefficient Schedule (from gluon-experiment)
+
+| Iter | a | b | c | Purpose |
+|------|------|-------|-------|---------|
+| 1 | 4.08 | -6.89 | 2.93 | Aggressive correction |
+| 2 | 3.95 | -6.30 | 2.64 | Slightly less aggressive |
+| 3 | 3.74 | -5.59 | 2.30 | Moderate |
+| 4 | 2.88 | -3.14 | 1.20 | Fine-tuning |
+| 5 | 2.84 | -3.05 | 1.20 | Final polish |
+
+### Orthogonality Error Comparison
+
+| Iterations | Standard | Muon | Improvement |
+|------------|----------|------|-------------|
+| 1 | 0.996 | 0.968 | 1.0x |
+| 2 | 0.990 | 0.695 | 1.4x |
+| 3 | 0.978 | 0.570 | 1.7x |
+| 4 | 0.953 | 0.276 | 3.5x |
+| **5** | **0.904** | **0.145** | **6.2x** |
+| 7 | 0.706 | 0.054 | 13x |
+| 10 | 0.397 | 0.035 | 11x |
+
+**Key insight:** Muon at 5 iterations ≈ Standard at 10+ iterations.
+You can halve the iteration count while getting better results.
+
+### Speed vs Quality Tradeoff
+
+| Method | Ortho Error | Time (4K×4K) | Error/ms |
+|--------|-------------|--------------|----------|
+| Standard N-S (5 iter) | 0.904 | 12.1 ms | 0.075 |
+| **Muon N-S (5 iter)** | **0.145** | 19.0 ms | **0.008** |
+| QR (exact) | 0.002 | 32.0 ms | 0.00006 |
+
+Muon gives **10x better error-per-millisecond** than standard N-S.
+
+### Variance Reduction
+
+| Method | Ortho Err | Elem Var | Norm CV |
+|--------|-----------|----------|---------|
+| Raw gradients | 179.4 | 0.250 | 0.00055 |
+| Standard N-S | 0.904 | 0.0002 | 0.000013 |
+| **Muon N-S** | **0.145** | 0.0019 | **0.000007** |
+| QR (exact) | 0.002 | 0.0020 | 0.000000 |
+
+### Implementation
+
+```python
+MUON_NS_COEFFS = [
+    (4.0848, -6.8946, 2.9270),
+    (3.9505, -6.3029, 2.6377),
+    (3.7418, -5.5913, 2.3037),
+    (2.8769, -3.1427, 1.2046),
+    (2.8366, -3.0525, 1.2012),
+]
+
+def newton_schulz_muon(G, coeffs=MUON_NS_COEFFS, eps=1e-7):
+    X = G.to(torch.bfloat16)
+    X = X / (X.norm() + eps)
+
+    for a, b, c in coeffs:
+        A = X @ X.T
+        B = b * A + c * (A @ A)  # The c*(A@A) term is key!
+        X = a * X + B @ X
+
+    return X
+```
+
 ## Activation Memory (The Other Bottleneck)
 
 At large batch sizes, activations dominate memory.
@@ -188,3 +261,23 @@ activations can still blow up your memory at large batch/seq.
 **Bottom line:** Muon + aggressive quantization enables training
 **6.6x larger models** on the same hardware. The floor is ~1.8 B/param;
 going lower breaks convergence.
+
+## Key Takeaways
+
+1. **Memory scaling**: Muon eliminates Adam's v state, enabling 4-bit momentum
+   → 6.6x larger models on the same hardware
+
+2. **N-S coefficients**: Muon's tuned coefficients give 6x better orthogonality
+   → Can halve iterations or get much better quality at same cost
+
+3. **Precision floor**:
+   - Momentum: 4-bit works, 2-bit diverges
+   - N-S: BF16/FP8 work, INT4 diverges
+   - Weights: IQ3 works, IQ2 is experimental
+
+4. **The stack**:
+   ```
+   IQ3 weights (0.31 B/p) + FP8 grads (1.0 B/p) + Muon 4-bit (0.5 B/p)
+   + Muon N-S coefficients (6x better ortho) + BF16 N-S compute
+   = 1.81 B/param total, 6.6x improvement over baseline
+   ```
