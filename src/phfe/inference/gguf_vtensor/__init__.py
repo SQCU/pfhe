@@ -63,6 +63,11 @@ from .carry_optimizer import (
     AdamCarry,
 )
 
+from .quantized_adam import (
+    QuantizedAdam,
+    QuantizedAdamState,
+)
+
 __all__ = [
     # Core vtensor
     "QuantizedParameter",
@@ -86,6 +91,8 @@ __all__ = [
     # Optimizers
     "CarryOptimizer",
     "AdamCarry",
+    "QuantizedAdam",
+    "QuantizedAdamState",
     # Constants
     "GGML_TYPE_F32",
     "GGML_TYPE_F16",
