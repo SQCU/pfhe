@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://claude.ai/chat/cb2cb9ca-daae-406b-9330-926ba2c94ae3
+HostUrl=https://claude.ai/api/organizations/c3ecae61-301e-43da-8bae-f45319354d69/conversations/cb2cb9ca-daae-406b-9330-926ba2c94ae3/wiggle/download-files?paths=%2Fmnt%2Fuser-data%2Foutputs%2Fgguf_vtensor%2FSKILL.md&paths=%2Fmnt%2Fuser-data%2Foutputs%2Fgguf_vtensor%2Fvtensor.py&paths=%2Fmnt%2Fuser-data%2Foutputs%2Fgguf_vtensor%2Fdequant_kernels.py&paths=%2Fmnt%2Fuser-data%2Foutputs%2Fgguf_vtensor%2Fcarry_optimizer.py&paths=%2Fmnt%2Fuser-data%2Foutputs%2Fgguf_vtensor%2Ftest_backward.py&paths=%2Fmnt%2Fuser-data%2Foutputs%2Fgguf_vtensor%2F__init__.py

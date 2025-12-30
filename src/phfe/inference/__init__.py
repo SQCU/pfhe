@@ -61,6 +61,25 @@ from .gguf_loader import (
     print_gguf_info,
 )
 
+# Paged attention exports
+from .paged_attention import (
+    BlockManager,
+    PageTable,
+    KVCacheManager,
+    PagedCausalAttention,
+    RotaryEmbedding,
+    create_causal_mask,
+    estimate_kv_cache_memory,
+)
+
+# Model exports
+from .model import (
+    GGUFModel,
+    ModelConfig,
+    load_model,
+    generate,
+)
+
 __all__ = [
     # Config
     "InferenceConfig",
@@ -76,4 +95,17 @@ __all__ = [
     "load_gguf_tensors",
     "inspect_gguf",
     "print_gguf_info",
+    # Paged Attention
+    "BlockManager",
+    "PageTable",
+    "KVCacheManager",
+    "PagedCausalAttention",
+    "RotaryEmbedding",
+    "create_causal_mask",
+    "estimate_kv_cache_memory",
+    # Model
+    "GGUFModel",
+    "ModelConfig",
+    "load_model",
+    "generate",
 ]
